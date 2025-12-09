@@ -37,7 +37,100 @@
 ## 2. 数据库模式（Database Schema）
 
 项目使用 SQLite 作为持久化存储，所有表结构定义在 `schema.sql` 中，并由 `app/db.py` 中的初始化函数在应用启动时自动创建或迁移。数据库启用了外键约束，以确保不同实体之间的关联关系一致。
+erDiagram
+    %% 用户表
+    USERS {
+        int id PK "自增主键"
+        string username "唯一用户名"
+        string email "可选邮箱"
+        string password_hash "密码哈希"
+        string role "角色(Student/Admin)"
+        datetime created_at
+        datetime last_login
+    }
 
+    %% 食堂表
+    CANTEENS {
+        int id PK "自增主键"
+        string name "食堂名称"
+        string location "位置"
+        string description "描述"
+    }
+
+    %% 菜品表
+    DISHES {
+        int id PK "自增主键"
+        int canteen_id FK "所属食堂"
+        string name "菜品名称"
+        string category "档口或类别"
+        float price "价格"
+        string ingredients_en "英文食材"
+        string ingredients_cn "中文食材"
+        int calories "卡路里"
+        boolean is_available "是否在售"
+        datetime created_at
+    }
+
+    %% 菜品选项配置 (如加辣、加蛋)
+    DISH_OPTION_CONFIGS {
+        int id PK "自增主键"
+        int dish_id FK "关联菜品"
+        string option_type "选项类型标识"
+        string name_cn "中文名称"
+        string name_en "英文名称"
+        json choices "可选值集合(序列化)"
+        boolean is_required "是否必选"
+    }
+
+    %% 评分与评论表
+    RATINGS {
+        int id PK "自增主键"
+        int user_id FK "用户"
+        int dish_id FK "菜品"
+        int score "1-5分"
+        text comment "评论内容"
+        datetime created_at
+    }
+
+    %% 收藏表 (联合主键逻辑)
+    FAVORITES {
+        int user_id PK,FK "用户"
+        int dish_id PK,FK "菜品"
+        datetime created_at
+    }
+
+    %% 订单表
+    ORDERS {
+        int id PK "自增主键"
+        int user_id FK "下单用户"
+        float total_price "总价"
+        string status "状态(Created/Paid/etc)"
+        datetime created_at
+    }
+
+    %% 订单明细表
+    ORDER_ITEMS {
+        int id PK "自增主键"
+        int order_id FK "所属订单"
+        int dish_id FK "菜品快照"
+        int quantity "数量"
+        float unit_price "购买时单价"
+        json options_snapshot "选项快照(JSON)"
+    }
+
+    %% 关系定义
+    CANTEENS ||--|{ DISHES : "包含 (Contains)"
+    DISHES ||--o{ DISH_OPTION_CONFIGS : "配置 (Has Options)"
+    
+    USERS ||--o{ RATINGS : "评价 (Reviews)"
+    DISHES ||--o{ RATINGS : "被评价 (Received Reviews)"
+    
+    USERS ||--o{ FAVORITES : "收藏 (Saves)"
+    DISHES ||--o{ FAVORITES : "被收藏 (Saved By)"
+    
+    USERS ||--o{ ORDERS : "下单 (Places)"
+    ORDERS ||--|{ ORDER_ITEMS : "包含 (Includes)"
+    DISHES ||--o{ ORDER_ITEMS : "作为明细 (Sold As)"
 系统主要包含以下实体及关系：
 
 ### 2.1 用户（users）
