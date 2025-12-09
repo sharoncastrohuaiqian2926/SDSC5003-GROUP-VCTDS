@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smart Campus Canteen</title>
+  <!-- 引入图标库 -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- 注意：这里加上了 ?v=2025 以强制清除浏览器缓存 -->
+  <link rel="stylesheet" href="/static/css/style.css?v=20250115" />
+</head>
+<body>
+  
+  <!-- 左侧导航栏 -->
+  <aside class="sidebar">
+    <div class="brand">
+      <i class="fas fa-utensils"></i>
+      <span>SmartEat</span>
+    </div>
+    
+    <nav class="nav-menu">
+      <button id="nav-menu" class="nav-item active">
+        <i class="fas fa-book-open"></i> <span data-i18n="nav_menu">浏览菜单</span>
+      </button>
+      <button id="nav-rec" class="nav-item">
+        <i class="fas fa-star"></i> <span data-i18n="nav_rec">每日推荐</span>
+      </button>
+      <button id="nav-order" class="nav-item">
+        <i class="fas fa-receipt"></i> <span data-i18n="nav_order">我的订单</span>
+      </button>
+    </nav>
+
+    <div class="sidebar-footer">
+      <button id="lang-switch" class="lang-toggle">
+        <i class="fas fa-globe"></i> <span id="lang-label">English</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- 主内容区 -->
+  <main class="main-content">
+    <header class="top-header">
+      <h2 class="page-title" id="page-title" data-i18n="header_menu">所有食堂</h2>
+      <div class="user-profile" id="user-profile">
+        <span id="username-display" data-i18n="not_logged_in">未登录</span>
+        <div class="avatar-circle" id="user-avatar"><i class="fas fa-user"></i></div>
+        <button id="login-btn" class="login-btn" data-i18n="login">登录</button>
+        <button id="logout-btn" class="logout-btn hidden" data-i18n="logout">登出</button>
+      </div>
+    </header>
+
+    <div class="content-scroll-area">
+      
+      <!-- 视图1: 点餐主界面 -->
+      <div id="view-menu" class="view-container active">
+        <div class="dashboard-grid">
+          
+          <!-- 左栏：食堂列表 -->
+          <div class="card canteen-card">
+            <div class="card-header">
+              <span data-i18n="header_canteen">食堂列表</span>
+              <i class="fas fa-map-marker-alt" style="color:#94a3b8"></i>
+            </div>
+            <div id="menu-tree" class="menu-tree-container">
+              <div class="loading-text">Loading...</div>
+            </div>
+          </div>
+
+          <!-- 中栏：菜品详情 -->
+          <div class="card dish-detail-card">
+            <!-- 选中后显示 -->
+            <div id="dish-detail-content" class="detail-content hidden">
+              <div class="dish-title-row">
+                <h1 class="big-title" id="d-name">...</h1>
+                <span class="price-tag" id="d-price">¥0</span>
+              </div>
+              <div><span class="tag" id="d-cat">...</span></div>
+              
+              <div class="dish-info-section">
+                <div class="info-row">
+                  <i class="fas fa-fire"></i>
+                  <span id="d-calories">--</span>
+                  <span class="info-label" data-i18n="calories">卡路里</span>
+                </div>
+                <div class="info-row">
+                  <i class="fas fa-list"></i>
+                  <span id="d-ingredients" class="ingredients-text">--</span>
+                </div>
+              </div>
+              
+              <div class="dish-placeholder-img">
+                <i class="fas fa-hamburger"></i>
+              </div>
+
+              <!-- 菜品选项区域 -->
+              <div id="dish-options-section" class="dish-options-section hidden">
+                <h5 data-i18n="customize_options">定制选项</h5>
+                <div id="dish-options-list"></div>
+              </div>
+
+              <div class="action-area">
+                <div class="qty-control">
+                  <button id="btn-qty-minus" class="qty-btn">-</button>
+                  <input type="text" class="qty-input" id="d-qty" value="1" readonly>
+                  <button id="btn-qty-plus" class="qty-btn">+</button>
+                </div>
+                <button id="btn-add-cart" class="btn-primary">
+                  <i class="fas fa-cart-plus"></i> <span data-i18n="btn_add">加入订单</span>
+                </button>
+              </div>
+
+              <div class="ratings-area">
+                <h4 data-i18n="ratings_title">用户评价</h4>
+                <ul id="ratings-list"></ul>
+                
+                <!-- 添加评价表单 -->
+                <div id="rating-form-section" class="rating-form-section">
+                  <h5 data-i18n="add_rating">添加评价</h5>
+                  <form id="rating-form" class="rating-form">
+                    <div class="rating-score-group">
+                      <label data-i18n="rating_score">评分：</label>
+                      <div class="star-rating">
+                        <input type="radio" id="star5" name="rating-score" value="5" />
+                        <label for="star5" class="star">★</label>
+                        <input type="radio" id="star4" name="rating-score" value="4" />
+                        <label for="star4" class="star">★</label>
+                        <input type="radio" id="star3" name="rating-score" value="3" />
+                        <label for="star3" class="star">★</label>
+                        <input type="radio" id="star2" name="rating-score" value="2" />
+                        <label for="star2" class="star">★</label>
+                        <input type="radio" id="star1" name="rating-score" value="1" />
+                        <label for="star1" class="star">★</label>
+                      </div>
+                    </div>
+                    <div class="form-group">
+                      <label data-i18n="rating_comment">评价内容（可选）：</label>
+                      <textarea id="rating-comment" rows="3" placeholder=""></textarea>
+                    </div>
+                    <button type="submit" class="btn-primary" data-i18n="submit_rating">提交评价</button>
+                    <div id="rating-message" class="message"></div>
+                  </form>
+                </div>
+              </div>
+            </div>
+            
+            <!-- 空状态 -->
+            <div id="dish-empty-state" class="empty-state">
+              <i class="fas fa-utensils"></i>
+              <p data-i18n="select_hint">请在左侧选择一道菜品<br>查看详情</p>
+            </div>
+          </div>
+
+          <!-- 右栏：购物车 -->
+          <div class="card cart-panel-wrapper">
+            <div class="card-header">
+              <span data-i18n="header_cart">购物车</span>
+              <span class="badge" id="cart-count">0</span>
+            </div>
+            <div class="cart-list" id="cart-list">
+              <!-- JS 渲染 -->
+            </div>
+            <div class="cart-footer">
+              <div class="total-row">
+                <span data-i18n="total">合计</span>
+                <span class="total-price-text" id="cart-total">¥0.00</span>
+              </div>
+              <button id="btn-checkout" class="btn-checkout" disabled>
+                <span data-i18n="btn_checkout">去结算</span>
+              </button>
+              <div id="order-msg" class="order-msg"></div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- 视图2: 推荐页 -->
+      <div id="view-rec" class="view-container">
+        <div class="rec-header-section">
+          <div class="rec-header-left">
+            <h3 class="section-title" data-i18n="rec_title">每日推荐</h3>
+            <div class="date-info" id="date-info">
+              <i class="fas fa-calendar-alt"></i>
+              <span id="current-date"></span>
+            </div>
+          </div>
+          <div class="rec-tabs">
+            <button id="tab-today" class="rec-tab active" data-i18n="tab_today">今日推荐</button>
+            <button id="tab-week" class="rec-tab" data-i18n="tab_week">本周推荐</button>
+          </div>
+        </div>
+        
+        <!-- 今日推荐 -->
+        <div id="today-rec" class="rec-content active">
+          <div class="today-badge" id="today-badge">
+            <i class="fas fa-star"></i>
+            <span id="today-day-name"></span>
+          </div>
+          <div id="rec-grid" class="rec-grid">Loading...</div>
+        </div>
+        
+        <!-- 本周推荐 -->
+        <div id="week-rec" class="rec-content">
+          <div id="week-grid" class="week-grid">Loading...</div>
+        </div>
+      </div>
+
+      <!-- 视图3: 订单历史 -->
+      <div id="view-order" class="view-container">
+        <div class="card empty-order-card">
+          <i class="fas fa-clipboard-list"></i>
+          <h3 data-i18n="no_orders">暂无历史订单</h3>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- 聊天机器人 -->
+  <div id="chat-widget" class="chat-widget">
+    <button id="chat-trigger" class="chat-trigger">
+      <i class="fas fa-comments"></i>
+    </button>
+    <div id="chat-panel" class="chat-panel hidden">
+      <div class="chat-header">
+        <span data-i18n="chat_title">点餐助手</span>
+        <button id="chat-close"><i class="fas fa-times"></i></button>
+      </div>
+      <div id="chat-messages" class="chat-messages"></div>
+      <form id="chat-form" class="chat-input-area">
+        <input id="chat-input" type="text" placeholder="..." autocomplete="off" />
+        <button type="submit"><i class="fas fa-paper-plane"></i></button>
+      </form>
+    </div>
+  </div>
+
+  <!-- 登录/注册模态框 -->
+  <div id="auth-modal" class="auth-modal hidden">
+    <div class="auth-modal-content">
+      <div class="auth-modal-header">
+        <h2 id="auth-modal-title" data-i18n="login">登录</h2>
+        <button id="auth-close" class="auth-close"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="auth-tabs">
+        <button id="tab-login" class="auth-tab active" data-i18n="login">登录</button>
+        <button id="tab-register" class="auth-tab" data-i18n="register">注册</button>
+      </div>
+      
+      <!-- 登录表单 -->
+      <form id="login-form" class="auth-form">
+        <div class="form-group">
+          <label data-i18n="username">用户名</label>
+          <input type="text" id="login-username" required autocomplete="username" />
+        </div>
+        <div class="form-group">
+          <label data-i18n="password">密码</label>
+          <input type="password" id="login-password" required autocomplete="current-password" />
+        </div>
+        <button type="submit" class="btn-primary" data-i18n="login">登录</button>
+        <div id="login-error" class="error-message"></div>
+      </form>
+      
+      <!-- 注册表单 -->
+      <form id="register-form" class="auth-form hidden">
+        <div class="form-group">
+          <label data-i18n="username">用户名</label>
+          <input type="text" id="register-username" required autocomplete="username" />
+        </div>
+        <div class="form-group">
+          <label data-i18n="email">邮箱（可选）</label>
+          <input type="email" id="register-email" autocomplete="email" />
+        </div>
+        <div class="form-group">
+          <label data-i18n="password">密码</label>
+          <input type="password" id="register-password" required autocomplete="new-password" minlength="6" />
+          <small data-i18n="password_hint">至少6位字符</small>
+        </div>
+        <button type="submit" class="btn-primary" data-i18n="register">注册</button>
+        <div id="register-error" class="error-message"></div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 结算支付模态框 -->
+  <div id="checkout-modal" class="auth-modal hidden">
+    <div class="auth-modal-content" style="max-width: 600px;">
+      <div class="auth-modal-header">
+        <h2 data-i18n="checkout_title">结算</h2>
+        <button id="checkout-close" class="auth-close"><i class="fas fa-times"></i></button>
+      </div>
+      <div style="padding: 1.5rem;">
+        <div id="checkout-items" style="margin-bottom: 1.5rem;"></div>
+        <div style="border-top: 2px solid #e2e8f0; padding-top: 1rem; margin-top: 1rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+            <span style="font-size: 1.1rem; font-weight: 600;" data-i18n="total">合计</span>
+            <span id="checkout-total" style="font-size: 1.5rem; font-weight: bold; color: #4361ee;">¥0.00</span>
+          </div>
+          <button id="btn-confirm-payment" class="btn-primary" style="width: 100%;">
+            <i class="fas fa-check"></i> <span data-i18n="confirm_payment">确认支付</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/static/js/app.js?v=20250115"></script>
+</body>
+</html>
